@@ -7,7 +7,6 @@ import pandas as pd
 import numpy as np
 from fastapi import FastAPI, UploadFile, File, Form
 from fastapi.middleware.cors import CORSMiddleware
-from dotenv import load_dotenv
 from google import genai
 from google.genai import types
 
@@ -17,9 +16,42 @@ from reportlab.platypus import SimpleDocTemplate, Paragraph, Spacer, Table, Tabl
 from reportlab.lib.styles import getSampleStyleSheet
 from reportlab.lib import colors
 
-load_dotenv()
+# ==========================================
+# 1. THE API KEY SLEDGEHAMMER
+# ==========================================
+BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+ENV_PATH = os.path.join(BASE_DIR, '.env')
+
+raw_key = ""
+
+# Step A: Try to read directly from the physical .env file (Bypasses Mac Cache)
+try:
+    with open(ENV_PATH, "r") as file:
+        for line in file:
+            if line.startswith("GEMINI_API_KEY="):
+                raw_key = line.replace("GEMINI_API_KEY=", "").strip().replace('"', '').replace("'", "")
+                break
+except FileNotFoundError:
+    pass
+
+# Step B: If the file isn't there (like when hosted on Render), use the system environment
+if not raw_key:
+    raw_key = os.getenv("GEMINI_API_KEY", "")
+
+if not raw_key:
+    print("FATAL ERROR: Could not find GEMINI_API_KEY. Check your .env file!")
+
+# ==========================================
+
 app = FastAPI()
-client = genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+print("========================================")
+print(f"FILE SEARCHED: {ENV_PATH}")
+print(f"KEY BEING USED ENDS IN: ...{raw_key[-4:]}")
+print("========================================")
+
+client = genai.Client(api_key=raw_key)
+# Inject the forcefully extracted key
+client = genai.Client(api_key=raw_key)
 
 app.add_middleware(
     CORSMiddleware,
@@ -232,9 +264,9 @@ async def run_audit(
             if idx == 0:
                 status = "Privileged"
             elif idx == len(group_stats) - 1:
-                status = "Most Disadvantaged" # Removed the ✗
+                status = "Most Disadvantaged"
             elif rate_pct < (group_stats[0]["rate"] * 0.8): 
-                status = "Warning" # Removed the ⚠
+                status = "Warning"
             else:
                 status = "-"
                 
