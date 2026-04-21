@@ -54,7 +54,7 @@ function App() {
     formData.append("decision_col", decisionCol)
 
     try {
-      const response = await fetch('http://127.0.0.1:8000/api/audit', {
+      const response = await fetch('https://agentx-backend-1463.onrender.com/api/audit', {
         method: 'POST',
         body: formData,
       })
