@@ -67,6 +67,20 @@ def bin_if_continuous(df, col_name):
         return df[col_name].apply(lambda x: f"High {col_name}" if x >= median_val else f"Low {col_name}")
     return df[col_name].astype(str)
 
+# --- ADD THIS NEW FUNCTION HERE ---
+def make_json_safe(obj):
+    if isinstance(obj, np.integer):
+        return int(obj)
+    elif isinstance(obj, np.floating):
+        return float(obj)
+    elif isinstance(obj, np.ndarray):
+        return obj.tolist()
+    elif isinstance(obj, dict):
+        return {k: make_json_safe(v) for k, v in obj.items()}
+    elif isinstance(obj, list):
+        return [make_json_safe(i) for i in obj]
+    return obj
+# ----------------------------------
 @app.post("/api/audit")
 async def run_audit(
     file: UploadFile = File(...),
@@ -300,7 +314,9 @@ async def run_audit(
         pdf_base64 = base64.b64encode(pdf_buffer.getvalue()).decode('utf-8')
         final_payload["pdf_report"] = pdf_base64
         
-        return final_payload
+        # --- WRAP THE FINAL PAYLOAD HERE ---
+        safe_payload = make_json_safe(final_payload)
+        return safe_payload
         
     except Exception as e:
         return {"error": str(e)}
