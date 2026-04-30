@@ -47,7 +47,9 @@ Rather than relying purely on LLM interpretation, AgentX employs a strict, deter
 
     uvicorn main:app --reload
 
-3. **Start the React Frontend:**
+   Note for Evaluators: To test the live application, please download and use the metro_bank_Q3_2024.csv file included in this repository.
+
+4. **Start the React Frontend:**
     *Open a new terminal window.*
     cd client
     npm install
